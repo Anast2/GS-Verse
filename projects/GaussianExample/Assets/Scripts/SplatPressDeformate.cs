@@ -18,6 +18,8 @@ public class SplatPressDeformate : MonoBehaviour, IDeformable
     public float maxDeform = 0.5f;
     public float radius = 0.85f;
     public float damageFalloff = 1.0f;
+    [SerializeField] private float pressIntensity = 0.15f;
+    [SerializeField] private float returnFinishEpsilon = 1e-4f;
 
     NativeArray<float3> vertexVelocities;
     private readonly List<Action> _deferredCleanup = new List<Action>();
@@ -34,6 +36,7 @@ public class SplatPressDeformate : MonoBehaviour, IDeformable
             if (_gsVerse != null)
             {
                 _gsVerse.OnInitVertices += Initialize;
+                _gsVerse.OnUpdate += UpdateMesh;
                 _gsVerse.needsColliderUpdate = true;
             }
             else
@@ -68,9 +71,32 @@ public class SplatPressDeformate : MonoBehaviour, IDeformable
         }
     }
 
-    private void UpdateMesh(float obj)
+    private void UpdateMesh(float deltaTime)
     {
+        if (_gsVerse == null) return;
+        if (ForceModeManager.Instance != null && ForceModeManager.Instance.CurrentForceMode == ForceMode.Press)
+            return;
 
+        var displaced = _gsVerse.GetDisplacedVertices();
+        var original = _gsVerse.GetOriginalVertices();
+        if (!displaced.IsCreated || !original.IsCreated) return;
+
+        float maxDispSq = 0f;
+        float lerpRate = math.saturate(deltaTime * springForce);
+        for (int i = 0; i < displaced.Length; i++)
+        {
+            float3 diff = displaced[i] - original[i];
+            float dsq = math.lengthsq(diff);
+            if (dsq > maxDispSq) maxDispSq = dsq;
+            displaced[i] = math.lerp(displaced[i], original[i], lerpRate);
+        }
+
+        bool stillDeformed = maxDispSq > returnFinishEpsilon * returnFinishEpsilon;
+        if (stillDeformed)
+        {
+            _gsVerse.needsRebuild = true;
+            _gsVerse.UpdateMesh();
+        }
     }
 
     private void RegisterNativeCleanup(Action cleanupAction)
@@ -157,7 +183,7 @@ public class SplatPressDeformate : MonoBehaviour, IDeformable
         {
             pressPoint = localPoint,
             radius = radius,
-            intensity = 0.15f,
+            intensity = pressIntensity,
             falloff = damageFalloff,
             displacedVertices = displacedVertices,
             originalVertices = originalVertices,

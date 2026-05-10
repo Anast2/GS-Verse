@@ -113,7 +113,7 @@ public class MeshStretcherController : MonoBehaviour
     {
         if (hand.interactor != null && hand.interactor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
         {
-            IDeformable deformer = hit.collider.GetComponent<IDeformable>();
+            IDeformable deformer = hit.collider.GetComponentInParent<IDeformable>();
 
             if (deformer != null)
             {
