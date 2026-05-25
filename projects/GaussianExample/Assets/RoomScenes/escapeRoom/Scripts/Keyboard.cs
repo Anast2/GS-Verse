@@ -1,13 +1,22 @@
+using GaussianSplatting.Shared;
 using System;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Keyboard : MonoBehaviour
 {
-    [SerializeField] private string targetSequence = "googol";
+    [SerializeField] private string targetSequence = "233";
     [SerializeField] private bool caseSensitive = false;
 
-    public event Action OnSequenceMatched;
+    [SerializeField] private GameObject redLight;
+    [SerializeField] private GameObject greenLight;
+
+    //[SerializeField]
+    public IDeformable deformer;
+
+    //public event Action OnSequenceMatched;
+    [SerializeField] private UnityEvent onCorrectCode;
 
     private readonly StringBuilder _buffer = new StringBuilder();
     private string _normalizedTarget;
@@ -15,6 +24,8 @@ public class Keyboard : MonoBehaviour
     void Awake()
     {
         _normalizedTarget = caseSensitive ? targetSequence : targetSequence.ToLowerInvariant();
+
+        deformer = GetComponentInChildren<IDeformable>();
     }
 
     public void RegisterKeyPress(string ch)
@@ -37,6 +48,8 @@ public class Keyboard : MonoBehaviour
     private void HandleSequenceMatched()
     {
         Debug.Log($"[Keyboard] Sequence '{_normalizedTarget}' entered!");
-        OnSequenceMatched?.Invoke();
+        redLight.SetActive(false);
+        greenLight.SetActive(true);
+        onCorrectCode?.Invoke();
     }
 }

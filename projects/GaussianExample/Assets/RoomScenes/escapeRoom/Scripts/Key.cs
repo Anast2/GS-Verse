@@ -8,6 +8,8 @@ public class Key : MonoBehaviour
 
     private Keyboard _keyboard;
 
+    private bool _isPressed = false;
+
     void Awake()
     {
         _keyboard = GetComponentInParent<Keyboard>();
@@ -15,9 +17,26 @@ public class Key : MonoBehaviour
             Debug.LogError($"Key '{name}' has no Keyboard parent in hierarchy.");
     }
 
-    public void Press()
+
+    void Update()
     {
-        if (_keyboard != null)
-            _keyboard.RegisterKeyPress(_character);
+        if (_isPressed)
+        {
+            _keyboard.deformer.AddPressForce(transform.position, transform.forward);
+        }
+    }
+
+    public void StartPress()
+    {
+        if (_isPressed) return;
+
+        _isPressed = true;
+
+        _keyboard.RegisterKeyPress(_character);
+    }
+
+    public void StopPress()
+    {
+        _isPressed = false;
     }
 }
