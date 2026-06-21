@@ -92,6 +92,22 @@ public class MeshStretcherController : MonoBehaviour
     {
         hand.currentMode = mode;
         hand.isFirstFrameAfterClick = true;
+
+        if (mode == ForceMode.Drag &&
+        hand.interactor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
+        {
+            if (hit.collider == null) return;
+
+            IDeformable deformer = hit.collider.GetComponentInParent<IDeformable>();
+
+            if (deformer != null)
+            {
+                hand.currentDeformer = deformer;
+                hand.lockedDistance = hit.distance;
+                hand.lastHitPoint = hit.point + hit.normal * forceOffset;
+            }
+        }
+
         ForceModeManager.Instance.SetForceMode(mode);
     }
 
@@ -138,20 +154,20 @@ public class MeshStretcherController : MonoBehaviour
         if (hand.interactor == null)
             return;
 
-        if (hand.currentDeformer == null)
-        {
-            if (hand.interactor.TryGetCurrent3DRaycastHit(out RaycastHit hitInfo))
-            {
-                IDeformable deformerOnHit = hitInfo.collider.GetComponentInParent<IDeformable>();
-                if (deformerOnHit != null)
-                {
-                    hand.currentDeformer = deformerOnHit;
-                    hand.lockedDistance = hitInfo.distance;
-                    hand.lastHitPoint = hitInfo.point + hitInfo.normal * forceOffset;
-                }
-            }
-        }
-        else if (hand.lockedDistance.HasValue)
+        //if (hand.currentDeformer == null)
+        //{
+        //    if (hand.interactor.TryGetCurrent3DRaycastHit(out RaycastHit hitInfo))
+        //    {
+        //        IDeformable deformerOnHit = hitInfo.collider.GetComponentInParent<IDeformable>();
+        //        if (deformerOnHit != null)
+        //        {
+        //            hand.currentDeformer = deformerOnHit;
+        //            hand.lockedDistance = hitInfo.distance;
+        //            hand.lastHitPoint = hitInfo.point + hitInfo.normal * forceOffset;
+        //        }
+        //    }
+        //}
+        if (hand.currentDeformer != null && hand.lockedDistance.HasValue)
         {
             if (hand.isFirstFrameAfterClick)
             {

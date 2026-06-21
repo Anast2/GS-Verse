@@ -6,13 +6,16 @@ public class ToggleJointOnGrab : MonoBehaviour
 {
     public ConfigurableJoint joint;
 
+    [SerializeField] private float maxForcePos = 500f;
+    [SerializeField] private float maxForceRot = 200f;
+
     public void JointOn()
     {
         JointDrive drive = new JointDrive
         {
             positionSpring = 500000f,
             positionDamper = 6000f,
-            maximumForce = 500f
+            maximumForce = maxForcePos
         };
 
         joint.xDrive = drive;
@@ -23,7 +26,7 @@ public class ToggleJointOnGrab : MonoBehaviour
         {
             positionSpring = 100000f,
             positionDamper = 6000f,
-            maximumForce = 200f
+            maximumForce = maxForceRot
         };
 
         joint.slerpDrive = drive;

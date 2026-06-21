@@ -1,3 +1,5 @@
+//#if UNITY_EDITOR
+
 // SPDX-License-Identifier: MIT
 
 using GaussianSplatting.Runtime.Utils;
@@ -121,3 +123,5 @@ namespace GaussianSplatting.Runtime
         }
     }
 }
+
+//#endif

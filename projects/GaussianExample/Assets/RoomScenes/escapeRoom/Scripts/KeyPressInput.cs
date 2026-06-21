@@ -1,5 +1,7 @@
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class KeyPressInput : MonoBehaviour
@@ -44,26 +46,16 @@ public class KeyPressInput : MonoBehaviour
     }
 
 
-    //private void OnTriggerLeft(InputAction.CallbackContext _) => TryPress(rayInteractorL);
-    //private void OnTriggerRight(InputAction.CallbackContext _) => TryPress(rayInteractorR);
-
-    //private void TryPress(XRRayInteractor interactor)
-    //{
-    //    if (interactor == null) return;
-    //    if (!interactor.TryGetCurrent3DRaycastHit(out RaycastHit hit)) return;
-
-    //    Key key = hit.collider.GetComponentInParent<Key>();
-    //    if (key != null) key.Press();
-    //}
-
-
     private void OnTriggerLeftStarted(InputAction.CallbackContext _)
     {
-        leftHeldKey = TryGetKey(rayInteractorL);
-
-        if (leftHeldKey != null)
-            leftHeldKey.StartPress();
+        HandlePress(rayInteractorL, ref leftHeldKey);
     }
+
+    private void OnTriggerRightStarted(InputAction.CallbackContext _)
+    {
+        HandlePress(rayInteractorR, ref rightHeldKey);
+    }
+
 
     private void OnTriggerLeftCanceled(InputAction.CallbackContext _)
     {
@@ -72,15 +64,6 @@ public class KeyPressInput : MonoBehaviour
             leftHeldKey.StopPress();
             leftHeldKey = null;
         }
-    }
-
-
-    private void OnTriggerRightStarted(InputAction.CallbackContext _)
-    {
-        rightHeldKey = TryGetKey(rayInteractorR);
-
-        if (rightHeldKey != null)
-            rightHeldKey.StartPress();
     }
 
     private void OnTriggerRightCanceled(InputAction.CallbackContext _)
@@ -93,14 +76,35 @@ public class KeyPressInput : MonoBehaviour
     }
 
 
-    private Key TryGetKey(XRRayInteractor interactor)
+
+    private void HandlePress(XRRayInteractor interactor, ref Key heldKey)
     {
         if (interactor == null)
-            return null;
+            return;
 
         if (!interactor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
-            return null;
+            return;
 
-        return hit.collider.GetComponentInParent<Key>();
+        Key key = hit.collider.GetComponentInParent<Key>();
+        if (key != null)
+        {
+            heldKey = key;
+            key.StartPress();
+            return;
+        }
+
+        SafeDigit digit = hit.collider.GetComponentInParent<SafeDigit>();
+        if (digit != null)
+        {
+            digit.Increment();
+        }
+
+        Safe safe = hit.collider.GetComponentInParent<Safe>();
+        XRSimpleInteractable safeHandle = hit.collider.GetComponent<XRSimpleInteractable>();
+        if (safe != null && safeHandle != null)
+        {
+            safe.TryOpen();
+            return;
+        }
     }
 }

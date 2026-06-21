@@ -8,6 +8,10 @@ TagManager:
   - SplatBackground
   - Collider
   - Deformable
+  - Battery
+  - Screwdriver
+  - Hammer
+  - Key
   layers:
   - Default
   - TransparentFX
@@ -18,9 +22,9 @@ TagManager:
   - no collision
   - dark
   - 
-  - 
-  - 
-  - 
+  - teleportationArea
+  - backwall
+  - allLight
   - 
   - 
   - 

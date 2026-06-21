@@ -4,7 +4,16 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/RoomScenes/escapeRoom/startingMenu.unity
+    guid: 035efe382efa6e44aa554c5e214d9062
+  - enabled: 1
+    path: Assets/RoomScenes/escapeRoom/escapeRoom.unity
+    guid: 62202d4d52973ef4cb3cb7046c9f465a
+  - enabled: 1
+    path: Assets/RoomScenes/escapeRoom/endScene.unity
+    guid: 6822fccaee23efe4391d6acae8107202
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: cc16ca7ef8d2ed246a0c878c01da3e7b, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 1dbb7931b2a49f548853c8b8fdb21a8f, type: 2}

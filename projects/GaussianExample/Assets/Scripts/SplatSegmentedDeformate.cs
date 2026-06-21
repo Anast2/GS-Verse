@@ -96,6 +96,8 @@ public class SplatSegmentedDeformate : MonoBehaviour, IDeformable
 
     public void Initialize(Vector3[] vertices)
     {
+        Debug.Log("SplatSegmentedDeformate: Initialize()");
+
         int vertexCount = vertices.Length;
 
         if (vertexVelocities.IsCreated)

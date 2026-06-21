@@ -12,8 +12,10 @@ public class Keyboard : MonoBehaviour
     [SerializeField] private GameObject redLight;
     [SerializeField] private GameObject greenLight;
 
+    public GameObject ObjectRequiredToBeActiveForCodeToWork = null;
+
     //[SerializeField]
-    public IDeformable deformer;
+    public IDeformable deformer;// needs to be accessible for keys
 
     //public event Action OnSequenceMatched;
     [SerializeField] private UnityEvent onCorrectCode;
@@ -30,7 +32,7 @@ public class Keyboard : MonoBehaviour
 
     public void RegisterKeyPress(string ch)
     {
-        if (string.IsNullOrEmpty(ch) || string.IsNullOrEmpty(_normalizedTarget)) return;
+        if (string.IsNullOrEmpty(ch) || string.IsNullOrEmpty(_normalizedTarget) || (ObjectRequiredToBeActiveForCodeToWork != null && !ObjectRequiredToBeActiveForCodeToWork.activeSelf)) return;
 
         string normalized = caseSensitive ? ch : ch.ToLowerInvariant();
         _buffer.Append(normalized);
