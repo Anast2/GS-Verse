@@ -1,13 +1,14 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-using Unity.Collections;
-using Unity.Mathematics;
-using Unity.Jobs;
 using GaussianSplatting.Runtime;
 using GaussianSplatting.Runtime.GaMeS;
-using GaussianSplatting.Shared;
 using GaussianSplatting.Runtime.Utils;
+using GaussianSplatting.Shared;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Mathematics;
+using UnityEngine;
 
 public class GSBase : MonoBehaviour
 {
@@ -192,17 +193,46 @@ public class GSBase : MonoBehaviour
 
         CreateRuntimeBuffers();
         // 7) Create runtime input splats data creator (validate pointCloudPath)
+
         _creator = new GaussianSplatRuntimeAssetCreator();
         if (string.IsNullOrEmpty(_asset.pointCloudPath))
             throw new InvalidOperationException("pointCloudPath on GaussianGaMeSSplatAsset is null or empty.");
 
-        _runTimeInputSplatsData = _creator.CreateAsset(_asset.pointCloudPath);
+
+        //
+        string runtimePointCloudPath = ResolvePointCloudPath(_asset.pointCloudPath);
+
+        if (!File.Exists(runtimePointCloudPath))
+            throw new FileNotFoundException($"Missing runtime point cloud file: {runtimePointCloudPath}");
+
+        _runTimeInputSplatsData = _creator.CreateAsset(runtimePointCloudPath);
+        //
+
 
         RegisterNativeCleanup(() => { if (_runTimeInputSplatsData.IsCreated) _runTimeInputSplatsData.Dispose(); });
 
         InitializeFullMode();
 
         OnInitVertices?.Invoke(_mesh.vertices);
+
+    }
+
+    private string ResolvePointCloudPath(string assetPath)
+    {
+#if UNITY_EDITOR
+        return assetPath;
+#else
+        string cleanPath = assetPath.Replace("\\", "/");
+        
+        string prefix = "Assets/StreamingAssets/";
+
+        if (cleanPath.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase))
+        {
+            cleanPath = cleanPath.Substring(prefix.Length);
+        }
+
+        return Path.Combine(Application.streamingAssetsPath, cleanPath);
+#endif
     }
 
     void DecodeAssetData()

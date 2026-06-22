@@ -86,18 +86,35 @@ namespace GaussianSplatting.Runtime
             if (m_ActiveSplats.Count == 0)
                 return false;
 
-            // sort them by order and depth from camera
+            //// sort them by order and depth from camera
+            //var camTr = cam.transform;
+            //m_ActiveSplats.Sort((a, b) =>
+            //{
+            //    var orderA = a.Item1.m_RenderOrder;
+            //    var orderB = b.Item1.m_RenderOrder;
+            //    if (orderA != orderB)
+            //        return orderB.CompareTo(orderA);
+            //    var trA = a.Item1.transform;
+            //    var trB = b.Item1.transform;
+            //    var posA = camTr.InverseTransformPoint(trA.position);
+            //    var posB = camTr.InverseTransformPoint(trB.position);
+            //    return posA.z.CompareTo(posB.z);
+            //});
+
+            // sort them by order and depth from camera   // sort splats using local "center" point // new
             var camTr = cam.transform;
             m_ActiveSplats.Sort((a, b) =>
             {
-                var orderA = a.Item1.m_RenderOrder;
-                var orderB = b.Item1.m_RenderOrder;
+                var gsA = a.Item1;
+                var gsB = b.Item1;
+                var orderA = gsA.m_RenderOrder;
+                var orderB = gsB.m_RenderOrder;
                 if (orderA != orderB)
                     return orderB.CompareTo(orderA);
-                var trA = a.Item1.transform;
-                var trB = b.Item1.transform;
-                var posA = camTr.InverseTransformPoint(trA.position);
-                var posB = camTr.InverseTransformPoint(trB.position);
+                var centerA = gsA.transform.TransformPoint(gsA.m_LocalCenter);
+                var centerB = gsB.transform.TransformPoint(gsB.m_LocalCenter);
+                var posA = camTr.InverseTransformPoint(centerA);
+                var posB = camTr.InverseTransformPoint(centerB);
                 return posA.z.CompareTo(posB.z);
             });
 
@@ -228,6 +245,12 @@ namespace GaussianSplatting.Runtime
 
         [Tooltip("Rendering order compared to other splats. Within same order splats are sorted by distance. Higher order splats render 'on top of' lower order splats.")]
         public int m_RenderOrder;
+
+        // new
+        [Tooltip("The \"center\" point used to calculate distance from camera for rendering order")]
+        public Vector3 m_LocalCenter = Vector3.zero;
+
+
         [Range(0.1f, 2.0f)]
         [Tooltip("Additional scaling factor for the splats")]
         public float m_SplatScale = 1.0f;

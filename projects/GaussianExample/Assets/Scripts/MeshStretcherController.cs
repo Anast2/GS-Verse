@@ -92,6 +92,22 @@ public class MeshStretcherController : MonoBehaviour
     {
         hand.currentMode = mode;
         hand.isFirstFrameAfterClick = true;
+
+        if (mode == ForceMode.Drag &&
+        hand.interactor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
+        {
+            if (hit.collider == null) return;
+
+            IDeformable deformer = hit.collider.GetComponentInParent<IDeformable>();
+
+            if (deformer != null)
+            {
+                hand.currentDeformer = deformer;
+                hand.lockedDistance = hit.distance;
+                hand.lastHitPoint = hit.point + hit.normal * forceOffset;
+            }
+        }
+
         ForceModeManager.Instance.SetForceMode(mode);
     }
 
@@ -111,15 +127,25 @@ public class MeshStretcherController : MonoBehaviour
 
     private void ProcessPressDeformation(HandState hand)
     {
-        if (hand.interactor != null && hand.interactor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
-        {
-            IDeformable deformer = hit.collider.GetComponent<IDeformable>();
+        if (hand.interactor == null) return;
 
-            if (deformer != null)
+        if (hand.currentDeformer == null)
+        {
+            if (hand.interactor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
             {
-                float pressStrength = hand.pressAction?.action?.ReadValue<float>() ?? 1f;
-                deformer.AddPressForce(hit.point, hit.normal);
+                IDeformable deformer = hit.collider.GetComponentInParent<IDeformable>();
+                if (deformer != null)
+                {
+                    hand.currentDeformer = deformer;
+                    hand.lastHitPoint = hit.point;
+                    hand.lockedPressNormal = hit.normal;
+                }
             }
+        }
+
+        if (hand.currentDeformer != null && hand.lastHitPoint.HasValue && hand.lockedPressNormal.HasValue)
+        {
+            hand.currentDeformer.AddPressForce(hand.lastHitPoint.Value, hand.lockedPressNormal.Value);
         }
     }
 
@@ -128,20 +154,20 @@ public class MeshStretcherController : MonoBehaviour
         if (hand.interactor == null)
             return;
 
-        if (hand.currentDeformer == null)
-        {
-            if (hand.interactor.TryGetCurrent3DRaycastHit(out RaycastHit hitInfo))
-            {
-                IDeformable deformerOnHit = hitInfo.collider.GetComponentInParent<IDeformable>();
-                if (deformerOnHit != null)
-                {
-                    hand.currentDeformer = deformerOnHit;
-                    hand.lockedDistance = hitInfo.distance;
-                    hand.lastHitPoint = hitInfo.point + hitInfo.normal * forceOffset;
-                }
-            }
-        }
-        else if (hand.lockedDistance.HasValue)
+        //if (hand.currentDeformer == null)
+        //{
+        //    if (hand.interactor.TryGetCurrent3DRaycastHit(out RaycastHit hitInfo))
+        //    {
+        //        IDeformable deformerOnHit = hitInfo.collider.GetComponentInParent<IDeformable>();
+        //        if (deformerOnHit != null)
+        //        {
+        //            hand.currentDeformer = deformerOnHit;
+        //            hand.lockedDistance = hitInfo.distance;
+        //            hand.lastHitPoint = hitInfo.point + hitInfo.normal * forceOffset;
+        //        }
+        //    }
+        //}
+        if (hand.currentDeformer != null && hand.lockedDistance.HasValue)
         {
             if (hand.isFirstFrameAfterClick)
             {
@@ -178,6 +204,7 @@ public class MeshStretcherController : MonoBehaviour
         public ForceMode currentMode = ForceMode.None;
         public IDeformable currentDeformer;
         public Vector3? lastHitPoint;
+        public Vector3? lockedPressNormal;
         public float? lockedDistance;
         public bool isFirstFrameAfterClick = false;
 
@@ -185,6 +212,7 @@ public class MeshStretcherController : MonoBehaviour
         {
             currentDeformer = null;
             lastHitPoint = null;
+            lockedPressNormal = null;
             lockedDistance = null;
             isFirstFrameAfterClick = false;
         }

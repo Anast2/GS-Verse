@@ -1,12 +1,13 @@
-using System.Collections.Generic;
 using GaussianSplatting.Runtime.Utils;
-using UnityEngine;
-using Unity.Mathematics;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Burst;
-using System;
-using System.IO;
+using Unity.Mathematics;
+using UnityEngine;
 
 namespace GaussianSplatting.Runtime.GaMeS
 {
@@ -349,6 +350,11 @@ namespace GaussianSplatting.Runtime.GaMeS
 
             Mesh mesh = sourceMesh;
 
+            // HARDCODED
+            //flipWinding = false;
+            //mirrorX = false;
+            
+
             // Apply rotation then mirror to vertices
             Vector3[] verts = mesh.vertices;
             Quaternion rot = rotate90X ? Quaternion.Euler(90f, 0f, 0f) : Quaternion.identity;
@@ -365,6 +371,7 @@ namespace GaussianSplatting.Runtime.GaMeS
             for (int s = 0; s < mesh.subMeshCount; s++)
             {
                 int[] tris = mesh.GetTriangles(s);
+
                 if (flipWinding)
                 {
                     for (int i = 0; i + 2 < tris.Length; i += 3)
@@ -374,8 +381,44 @@ namespace GaussianSplatting.Runtime.GaMeS
                         tris[i + 2] = tmp;
                     }
                 }
+
                 mesh.SetTriangles(tris, s);
             }
+
+
+
+            //// // // // TESTING // // // //
+            //var facesPath = Path.Combine(Application.persistentDataPath, "Unity_faces_testing.txt");
+            //var vertsPath = Path.Combine(Application.persistentDataPath, "Unity_vertices_testing.txt");
+
+            //var sbFaces = new StringBuilder();
+            //var sbVerts = new StringBuilder();
+
+            //// vertices
+            //verts = mesh.vertices;
+            //for (int i = 0; i < verts.Length; i++)
+            //{
+            //    sbVerts.AppendLine($"{verts[i].x:F8} {verts[i].y:F8} {verts[i].z:F8}");
+            //}
+
+            //// triangles from all submeshes
+            //for (int s = 0; s < mesh.subMeshCount; s++)
+            //{
+            //    int[] tris = mesh.GetTriangles(s);
+            //    sbFaces.AppendLine($"# submesh {s}, tris={tris.Length / 3}");
+            //    for (int i = 0; i < tris.Length; i += 3)
+            //    {
+            //        sbFaces.AppendLine($"{tris[i]} {tris[i + 1]} {tris[i + 2]}");
+            //    }
+            //}
+
+            //File.WriteAllText(facesPath, sbFaces.ToString());
+            //File.WriteAllText(vertsPath, sbVerts.ToString());
+
+            //Debug.Log($"[Testing] Triangle data successfully saved to: {Application.persistentDataPath}");
+            //// // // // // / // // // // //
+
+
 
             // Normals: either recalc (safe) or transform existing normals
 
